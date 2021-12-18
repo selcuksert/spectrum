@@ -1,0 +1,132 @@
+version: '3'
+
+services:
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      CONTAINERS: 1
+      TZ: ${TZ}
+  traefik:
+    # The official v2 Traefik docker image
+    image: "traefik:2.5"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.mqadm.address=:15672"
+    depends_on:
+      - socket-proxy
+    environment:
+      TZ: ${TZ}
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+  mq:
+    image: rabbitmq:management
+    environment:
+      TZ: ${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mq.rule=Host(`mq.poc.local`)"
+      - "traefik.http.routers.mq.entrypoints=http"
+      - "traefik.http.routers.mq.service=mq-service"
+      - "traefik.http.services.mq-service.loadbalancer.server.port=15672"
+  generatorFM:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: FM
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  generatorVHF:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: VHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  generatorUHF:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: UHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  processorFM:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: FM
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.processor.rule=Host(`app.poc.local`) && Path(`/api/processor`)"
+      - "traefik.http.routers.processor.entrypoints=http"
+      - "traefik.http.routers.processor.service=processor-service"
+      - "traefik.http.services.processor-service.loadbalancer.server.port=8080"
+  processorVHF:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: VHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.processor.rule=Host(`app.poc.local`) && Path(`/api/processor`)"
+      - "traefik.http.routers.processor.entrypoints=http"
+      - "traefik.http.routers.processor.service=processor-service"
+      - "traefik.http.services.processor-service.loadbalancer.server.port=8080"
+  processorUHF:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: UHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.processor.rule=Host(`app.poc.local`) && Path(`/api/processor`)"
+      - "traefik.http.routers.processor.entrypoints=http"
+      - "traefik.http.routers.processor.service=processor-service"
+      - "traefik.http.services.processor-service.loadbalancer.server.port=8080"
+
