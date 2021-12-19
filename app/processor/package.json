@@ -14,5 +14,8 @@
     "amqplib": "^0.8.0",
     "moment-timezone": "^0.5.34",
     "ws": "^8.3.0"
+  },
+  "devDependencies": {
+    "@types/socket.io": "^3.0.2"
   }
 }

@@ -1,11 +1,17 @@
 const {EXCHANGE_NAME} = require("../common/definitions");
 const amqplib = require('amqplib');
-const {getFormattedTime} = require("../common/functions");
 const config = require("../common/config");
+const WebSocketServer = require("ws").WebSocketServer;
 
 const brokerUrl = `${config.broker.protocol}://${config.broker.host}:${config.broker.port}`;
 
+const wssPort = process.env.WSS_PORT || 9080;
+
 const start = () => {
+    startWebSocketServer();
+}
+
+const startAmqp = (ws) => {
     let band = process.env.BAND || undefined;
 
     if (!band) {
@@ -36,21 +42,38 @@ const start = () => {
         });
 
         qok.then((result) => {
-            registerConsumer(channel, result.queue);
+            registerConsumer(channel, result.queue, ws);
         });
     }).catch((err) => {
         if (err.code === 'ECONNREFUSED') {
             console.log(`Unable to connect to broker (${brokerUrl}). Retrying in 2 seconds...`);
-            setTimeout(() => start(), 2000);
+            setTimeout(() => startAmqp(ws), 2000);
         } else {
             console.error(err);
         }
     });
 }
 
-const registerConsumer = (channel, queueName) => {
+const startWebSocketServer = () => {
+    let wss = new WebSocketServer({port: wssPort});
+
+    wss.on('connection', (ws) => {
+        console.log(`Started WebSocket Server`);
+        startAmqp(ws);
+    });
+
+    process.once('SIGINT', () => {
+        if (wss) {
+            wss.close();
+            console.log(`Stopped WebSocket Server`);
+        }
+    });
+}
+
+const registerConsumer = (channel, queueName, ws) => {
     return channel.consume(queueName, (msg) => {
-        console.log('<=', getFormattedTime(), msg.content.toString());
+        let data = msg.content.toString();
+        ws.send(data);
     }, {noAck: true});
 }
 

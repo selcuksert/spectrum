@@ -1,4 +1,4 @@
-const faker = require('faker/locale/en');
+const faker = require('faker/index');
 const amqplib = require('amqplib');
 const Signal = require('../common/models/signal');
 const moment = require('moment-timezone');
@@ -55,26 +55,26 @@ const generateSignal = (channel, band) => {
     let freq = undefined
 
     if (band === bands.FM.name) {
-        freq = faker.datatype.float({min: bands.FM.min, max: bands.FM.max});
+        freq = faker.datatype.float({min: bands.FM.min, max: bands.FM.max, precision: 0.1});
     }
 
     if (band === bands.UHF.name) {
-        freq = faker.datatype.float({min: bands.UHF.min, max: bands.UHF.max});
+        freq = faker.datatype.float({min: bands.UHF.min, max: bands.UHF.max, precision: 0.1});
     }
 
     if (band === bands.VHF.name) {
-        freq = faker.datatype.float({min: bands.VHF.min, max: bands.VHF.max});
+        freq = faker.datatype.float({min: bands.VHF.min, max: bands.VHF.max, precision: 0.1});
     }
 
     if (freq) {
-        let amp = faker.datatype.float({min: -100, max: 30});
+        let amp = faker.datatype.float({min: -30, max: 30, precision: 0.1});
         let routingKey = `${band}.${sourceId}`;
         let generatedAt = moment().valueOf();
         let signal = new Signal(sourceId, freq, amp, generatedAt, band);
 
         channel.publish(EXCHANGE_NAME, routingKey, Buffer.from(JSON.stringify(signal)));
 
-        setTimeout(() => generateSignal(channel, band), 200);
+        setTimeout(() => generateSignal(channel, band), 10);
     }
 }
 

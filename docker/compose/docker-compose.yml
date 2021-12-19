@@ -39,6 +39,18 @@ services:
       - "traefik.http.routers.mq.entrypoints=http"
       - "traefik.http.routers.mq.service=mq-service"
       - "traefik.http.services.mq-service.loadbalancer.server.port=15672"
+  ui:
+    build:
+      context: ../../ui
+    image: custom/spectrum/ui
+    environment:
+      TZ: ${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ui.rule=Host(`web.poc.local`)"
+      - "traefik.http.routers.ui.entrypoints=http"
+      - "traefik.http.routers.ui.service=ui-service"
+      - "traefik.http.services.ui-service.loadbalancer.server.port=8080"
   generatorFM:
     build:
       args:
@@ -89,10 +101,10 @@ services:
       TZ: ${TZ}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.processor.rule=Host(`app.poc.local`) && Path(`/api/processor`)"
-      - "traefik.http.routers.processor.entrypoints=http"
-      - "traefik.http.routers.processor.service=processor-service"
-      - "traefik.http.services.processor-service.loadbalancer.server.port=8080"
+      - "traefik.http.routers.processorFM.rule=Host(`app.poc.local`) && Path(`/ws/fm`)"
+      - "traefik.http.routers.processorFM.entrypoints=http"
+      - "traefik.http.routers.processorFM.service=processorFM-service"
+      - "traefik.http.services.processorFM-service.loadbalancer.server.port=9080"
   processorVHF:
     build:
       args:
@@ -107,10 +119,10 @@ services:
       TZ: ${TZ}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.processor.rule=Host(`app.poc.local`) && Path(`/api/processor`)"
-      - "traefik.http.routers.processor.entrypoints=http"
-      - "traefik.http.routers.processor.service=processor-service"
-      - "traefik.http.services.processor-service.loadbalancer.server.port=8080"
+      - "traefik.http.routers.processorVHF.rule=Host(`app.poc.local`) && Path(`/ws/vhf`)"
+      - "traefik.http.routers.processorVHF.entrypoints=http"
+      - "traefik.http.routers.processorVHF.service=processorVHF-service"
+      - "traefik.http.services.processorVHF-service.loadbalancer.server.port=9080"
   processorUHF:
     build:
       args:
@@ -125,8 +137,8 @@ services:
       TZ: ${TZ}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.processor.rule=Host(`app.poc.local`) && Path(`/api/processor`)"
-      - "traefik.http.routers.processor.entrypoints=http"
-      - "traefik.http.routers.processor.service=processor-service"
-      - "traefik.http.services.processor-service.loadbalancer.server.port=8080"
+      - "traefik.http.routers.processorUHF.rule=Host(`app.poc.local`) && Path(`/ws/uhf`)"
+      - "traefik.http.routers.processorUHF.entrypoints=http"
+      - "traefik.http.routers.processorUHF.service=processorUHF-service"
+      - "traefik.http.services.processorUHF-service.loadbalancer.server.port=9080"
 

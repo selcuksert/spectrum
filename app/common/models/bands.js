@@ -6,7 +6,7 @@ class Bands {
         this.max = max;
     }
 
-    static FM = new Bands('FM', 87.5, 108);
+    static FM = new Bands('FM', 88, 108);
 
     static VHF = new Bands('VHF', 174, 216);
 
