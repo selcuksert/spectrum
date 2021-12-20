@@ -1,6 +1,7 @@
-const {EXCHANGE_NAME} = require("../common/definitions");
+const {exchangeName} = require("../common/definitions");
 const amqplib = require('amqplib');
 const config = require("../common/config");
+
 const WebSocketServer = require("ws").WebSocketServer;
 
 const brokerUrl = `${config.broker.protocol}://${config.broker.host}:${config.broker.port}`;
@@ -35,7 +36,7 @@ const startAmqp = (ws) => {
         console.log(`Connected to broker (${brokerUrl})`);
         return conn.createChannel();
     }).then((channel) => {
-        let excOk = channel.assertExchange(EXCHANGE_NAME, 'topic', {durable: false});
+        let excOk = channel.assertExchange(exchangeName, 'topic', {durable: false});
 
         let qok = excOk.then(() => {
             return channel.assertQueue(band);

@@ -1,49 +1,18 @@
 const Plotly = require('plotly.js-dist');
+require('bootstrap/dist/css/bootstrap.min.css');
 
-const generateRange = (min, max) => {
-    let precision = 0.1;
-    let freqArr = [...new Array((max - min) * (1 / precision))].map((_, idx) => min + idx * precision);
-    let ampArr = [...new Array((max - min) * (1 / precision))].map(() => 0);
+let ws = undefined;
 
-    freqArr.push(max);
-    ampArr.push(0);
-
-    return {
-        freq: freqArr,
-        amp: ampArr,
-        rangeMin: min,
-        rangeMax: max
-    }
-}
-
-const updateSpectrumData = (band, freq, amp, spectrumData) => {
-    let freqData = spectrumData.freq;
-    let ampData = spectrumData.amp;
-
-    let idx = freqData.indexOf(freq);
-
-    if (idx >= 0) {
-        ampData[idx] = amp;
-    }
-
-    spectrumData.freq = freqData;
-    spectrumData.amp = ampData;
-
-    return spectrumData;
-}
-
-const plotOnUpdate = (event, spectrumData) => {
+const plotOnUpdate = (event, range) => {
     let wsData = JSON.parse(event.data);
     let band = wsData.band.toLowerCase();
-    let amp = wsData.amp;
-    let freq = wsData.freq;
+    let ampArr = wsData.ampArr;
+    let freqArr = wsData.freqArr;
     let source = wsData.sourceId;
 
-    spectrumData = updateSpectrumData(band, freq, amp, spectrumData);
-
     let graphTrace = {
-        x: spectrumData.freq,
-        y: spectrumData.amp,
+        x: freqArr,
+        y: ampArr,
         mode: "line",
         name: source,
         type: 'scattergl'
@@ -53,56 +22,81 @@ const plotOnUpdate = (event, spectrumData) => {
         title: band.toUpperCase(),
         xaxis: {
             title: 'MHz',
-            range: [spectrumData.rangeMin, spectrumData.rangeMax],
+            range: [range.min, range.max],
             type: 'linear'
         },
         yaxis: {
             title: 'dBm',
-            range: [-30, 30],
+            range: [-40, 40],
             type: 'linear'
         }
     }
 
     let graphData = [graphTrace];
 
-    Plotly.newPlot(`graph-${band}`, graphData, layout);
+    Plotly.newPlot(`graph`, graphData, layout);
 }
 
-const startGraph = (data) => {
-    let band = data.band;
-    let rangeMin = data.range.min;
-    let rangeMax = data.range.max;
+const startGraph = (band, range) => {
+    if(ws) {
+        ws.close();
+    }
+
     let wsUrl = `ws://app.poc.local/ws/${band}`;
 
-    let spectrumData = generateRange(rangeMin, rangeMax);
+    ws = new WebSocket(wsUrl);
 
-    let ws = new WebSocket(wsUrl);
+    ws.onopen = (e) => {
+        console.log('WebSocket opened', e.currentTarget.url);
+    }
 
     ws.onmessage = (event) => {
-        plotOnUpdate(event, spectrumData);
+        plotOnUpdate(event, range);
+    }
+
+    ws.onclose = (e) => {
+        console.log('WebSocket closed', e.currentTarget.url);
     }
 }
 
-startGraph({
-    band: 'fm',
-    range: {
-        min: 88,
-        max: 108
-    }
-});
+const toggleActive = (band) => {
+    $('#mf').removeClass('active');
+    $('#hf').removeClass('active');
+    $('#vhf').removeClass('active');
+    $('#uhf').removeClass('active');
+    $('#stop').removeClass('active');
 
-startGraph({
-    band: 'vhf',
-    range: {
-        min: 174,
-        max: 216
-    }
-});
+    $(`#${band}`).addClass('active');
+}
 
-startGraph({
-    band: 'uhf',
-    range: {
-        min: 470,
-        max: 806
-    }
-});
+const clickHandler = (band, min, max) => {
+    toggleActive(band);
+    startGraph(band, {min: min, max: max});
+}
+
+(() => {
+    clickHandler('mf', 0.3, 3);
+
+    $('#mf').click(() => {
+        clickHandler('mf', 0.3, 3);
+    });
+
+    $('#hf').click(() => {
+        clickHandler('hf', 3, 30);
+    });
+
+    $('#vhf').click(() => {
+        clickHandler('vhf', 30, 300);
+    });
+
+    $('#uhf').click(() => {
+        clickHandler('uhf', 300, 3000);
+    });
+
+    $('#stop').click(() => {
+        toggleActive('stop');
+        if(ws) {
+            ws.close();
+        }
+    });
+})();

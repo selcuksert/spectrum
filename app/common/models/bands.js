@@ -6,11 +6,13 @@ class Bands {
         this.max = max;
     }
 
-    static FM = new Bands('FM', 88, 108);
+    static MF = new Bands('MF', 0.3, 3);
 
-    static VHF = new Bands('VHF', 174, 216);
+    static HF = new Bands('HF', 3, 30);
 
-    static UHF = new Bands('UHF', 470, 806);
+    static VHF = new Bands('VHF', 30, 300);
+
+    static UHF = new Bands('UHF', 300, 3000);
 
 }
 

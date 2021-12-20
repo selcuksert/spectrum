@@ -10,6 +10,7 @@ WORKDIR /app
 COPY package.json ./
 COPY webpack.config.js ./
 COPY index.html ./
+COPY favicon.ico ./
 COPY src/ ./src
 
 RUN yarn install && yarn build

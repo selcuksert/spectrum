@@ -1,9 +1,9 @@
 class Signal {
-    constructor(sourceId, freq, amp, generatedAt, band) {
+    constructor(sourceId, freqArr, ampArr, generatedAt, band) {
         this.sourceId = sourceId;
-        this.freq = freq;
-        this.amp = amp;
-        this.generatedat = generatedAt;
+        this.freqArr = freqArr;
+        this.ampArr = ampArr;
+        this.generatedAt = generatedAt;
         this.band = band;
     }
 }

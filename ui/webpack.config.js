@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const {ProvidePlugin} = require('webpack');
 
 module.exports = {
     mode: 'development',
@@ -7,8 +8,12 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             title: 'Spectrum Viewer Tool',
-            template: 'index.html'
+            template: 'index.html',
+            favicon: './favicon.ico'
         }),
+        new ProvidePlugin({
+            $: 'jquery'
+        })
     ],
     output: {
         filename: 'main.js',
@@ -21,6 +26,13 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'ify-loader'
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
             }
         ]
     }

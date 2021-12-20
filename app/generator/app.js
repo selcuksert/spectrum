@@ -4,7 +4,7 @@ const Signal = require('../common/models/signal');
 const moment = require('moment-timezone');
 const bands = require('../common/models/bands');
 const config = require('../common/config');
-const {EXCHANGE_NAME} = require("../common/definitions");
+const {exchangeName, precision, samplesPerMhz, amplitude, retryInSecs} = require("../common/definitions");
 
 const brokerUrl = `${config.broker.protocol}://${config.broker.host}:${config.broker.port}`;
 const sourceId = faker.datatype.uuid();
@@ -34,7 +34,7 @@ const start = () => {
 
         return conn.createChannel();
     }).then((channel) => {
-        let excOk = channel.assertExchange(EXCHANGE_NAME, 'topic', {durable: false});
+        let excOk = channel.assertExchange(exchangeName, 'topic', {durable: false});
 
         registerQueue(channel, excOk, band);
 
@@ -43,39 +43,43 @@ const start = () => {
         });
     }).catch((err) => {
         if (err.code === 'ECONNREFUSED') {
-            console.log(`Unable to connect to broker (${brokerUrl}). Retrying in 2 seconds...`);
-            setTimeout(() => start(), 2000);
+            console.log(`Unable to connect to broker (${brokerUrl}). Retrying in ${retryInSecs} seconds...`);
+            setTimeout(() => start(), retryInSecs * 1000);
         } else {
             console.error(err);
         }
     });
 }
 
+const generateRange = (min, max) => {
+    let freqArr = [...new Array((max - min) * (samplesPerMhz))].map((_, idx) => min + idx * precision);
+    let ampArr = [...new Array((max - min) * (samplesPerMhz))].map(() => faker.datatype.float({
+        min: amplitude.min,
+        max: amplitude.max,
+        precision: precision
+    }));
+
+    freqArr.push(max);
+    ampArr.push(faker.datatype.float({min: amplitude.min, max: amplitude.max, precision: precision}));
+
+    return {
+        freqArr: freqArr,
+        ampArr: ampArr,
+    }
+}
+
 const generateSignal = (channel, band) => {
-    let freq = undefined
+    let range = generateRange(bands[`${band.toUpperCase()}`].min, bands[`${band.toUpperCase()}`].max, precision);
+    let freqArr = range.freqArr;
+    let ampArr = range.ampArr;
 
-    if (band === bands.FM.name) {
-        freq = faker.datatype.float({min: bands.FM.min, max: bands.FM.max, precision: 0.1});
-    }
+    let routingKey = `${band}.${sourceId}`;
+    let generatedAt = moment().valueOf();
+    let signal = new Signal(sourceId, freqArr, ampArr, generatedAt, band);
 
-    if (band === bands.UHF.name) {
-        freq = faker.datatype.float({min: bands.UHF.min, max: bands.UHF.max, precision: 0.1});
-    }
+    channel.publish(exchangeName, routingKey, Buffer.from(JSON.stringify(signal)));
 
-    if (band === bands.VHF.name) {
-        freq = faker.datatype.float({min: bands.VHF.min, max: bands.VHF.max, precision: 0.1});
-    }
-
-    if (freq) {
-        let amp = faker.datatype.float({min: -30, max: 30, precision: 0.1});
-        let routingKey = `${band}.${sourceId}`;
-        let generatedAt = moment().valueOf();
-        let signal = new Signal(sourceId, freq, amp, generatedAt, band);
-
-        channel.publish(EXCHANGE_NAME, routingKey, Buffer.from(JSON.stringify(signal)));
-
-        setTimeout(() => generateSignal(channel, band), 10);
-    }
+    setTimeout(() => generateSignal(channel, band), (1 / samplesPerMhz) * 1000);
 }
 
 const registerQueue = (channel, excOk, bandName) => {
@@ -84,7 +88,7 @@ const registerQueue = (channel, excOk, bandName) => {
     });
 
     qok.then((result) => {
-        channel.bindQueue(result.queue, EXCHANGE_NAME, bandName + '.#');
+        channel.bindQueue(result.queue, exchangeName, bandName + '.#');
     });
 }
 

@@ -51,14 +51,26 @@ services:
       - "traefik.http.routers.ui.entrypoints=http"
       - "traefik.http.routers.ui.service=ui-service"
       - "traefik.http.services.ui-service.loadbalancer.server.port=8080"
-  generatorFM:
+  generatorMF:
     build:
       args:
         APP_NAME: generator
       context: ../../app
     image: custom/spectrum/generator
     environment:
-      BAND: FM
+      BAND: MF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  generatorHF:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: HF
       BROKER_HOST: ${BROKER_HOST}
       BROKER_PORT: ${BROKER_PORT}
       BROKER_PROTOCOL: ${BROKER_PROTOCOL}
@@ -87,24 +99,42 @@ services:
       BROKER_PORT: ${BROKER_PORT}
       BROKER_PROTOCOL: ${BROKER_PROTOCOL}
       TZ: ${TZ}
-  processorFM:
+  processorMF:
     build:
       args:
         APP_NAME: processor
       context: ../../app
     image: custom/spectrum/processor
     environment:
-      BAND: FM
+      BAND: MF
       BROKER_HOST: ${BROKER_HOST}
       BROKER_PORT: ${BROKER_PORT}
       BROKER_PROTOCOL: ${BROKER_PROTOCOL}
       TZ: ${TZ}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.processorFM.rule=Host(`app.poc.local`) && Path(`/ws/fm`)"
-      - "traefik.http.routers.processorFM.entrypoints=http"
-      - "traefik.http.routers.processorFM.service=processorFM-service"
-      - "traefik.http.services.processorFM-service.loadbalancer.server.port=9080"
+      - "traefik.http.routers.processorMF.rule=Host(`app.poc.local`) && Path(`/ws/mf`)"
+      - "traefik.http.routers.processorMF.entrypoints=http"
+      - "traefik.http.routers.processorMF.service=processorMF-service"
+      - "traefik.http.services.processorMF-service.loadbalancer.server.port=9080"
+  processorHF:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: HF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.processorHF.rule=Host(`app.poc.local`) && Path(`/ws/hf`)"
+      - "traefik.http.routers.processorHF.entrypoints=http"
+      - "traefik.http.routers.processorHF.service=processorHF-service"
+      - "traefik.http.services.processorHF-service.loadbalancer.server.port=9080"
   processorVHF:
     build:
       args:
