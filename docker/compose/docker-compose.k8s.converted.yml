@@ -1,0 +1,133 @@
+version: '3'
+
+services:
+  generatorhf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: generator
+    environment:
+      BAND: HF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/generator
+
+  generatormf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: generator
+    environment:
+      BAND: MF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/generator
+
+  generatoruhf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: generator
+    environment:
+      BAND: UHF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/generator
+
+  generatorvhf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: generator
+    environment:
+      BAND: VHF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/generator
+
+  mq:
+    environment:
+      TZ: Europe/Istanbul
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  processorhf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: processor
+    environment:
+      BAND: HF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/processor
+    ports:
+      - "9080:9080"
+
+  processormf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: processor
+    environment:
+      BAND: MF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/processor
+    ports:
+      - "9080:9080"
+
+  processoruhf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: processor
+    environment:
+      BAND: UHF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/processor
+    ports:
+      - "9080:9080"
+
+  processorvhf:
+    build:
+      context: ../../app
+      args:
+        APP_NAME: processor
+    environment:
+      BAND: VHF
+      BROKER_HOST: mq
+      BROKER_PORT: "5672"
+      BROKER_PROTOCOL: amqp
+      TZ: Europe/Istanbul
+    image: custom/spectrum/processor
+    ports:
+      - "9080:9080"
+
+  ui:
+    build:
+      context: ../../ui
+    environment:
+      TZ: Europe/Istanbul
+    image: custom/spectrum/ui
+    labels:
+      kompose.service.type: LoadBalancer
+    ports:
+      - "8080:8080"

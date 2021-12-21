@@ -13,7 +13,9 @@ COPY index.html ./
 COPY favicon.ico ./
 COPY src/ ./src
 
-RUN yarn install && yarn build
+RUN yarn install && \
+    yarn build && \
+    rm -rf ./node_modules
 
 FROM nginx
 

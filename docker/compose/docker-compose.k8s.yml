@@ -1,0 +1,124 @@
+version: '3'
+
+services:
+  mq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      TZ: ${TZ}
+  ui:
+    build:
+      context: ../../ui
+    image: custom/spectrum/ui
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "8080:8080"
+    labels:
+      kompose.service.type: LoadBalancer
+  generatormf:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: MF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  generatorhf:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: HF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  generatorvhf:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: VHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  generatoruhf:
+    build:
+      args:
+        APP_NAME: generator
+      context: ../../app
+    image: custom/spectrum/generator
+    environment:
+      BAND: UHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+  processormf:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: MF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    ports:
+      - "9080:9080"
+  processorhf:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: HF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    ports:
+      - "9080:9080"
+  processorvhf:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: VHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    ports:
+      - "9080:9080"
+  processoruhf:
+    build:
+      args:
+        APP_NAME: processor
+      context: ../../app
+    image: custom/spectrum/processor
+    environment:
+      BAND: UHF
+      BROKER_HOST: ${BROKER_HOST}
+      BROKER_PORT: ${BROKER_PORT}
+      BROKER_PROTOCOL: ${BROKER_PROTOCOL}
+      TZ: ${TZ}
+    ports:
+      - "9080:9080"

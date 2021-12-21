@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: processorhf-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+    - host: app.poc.local
+      http:
+        paths:
+          - path: /ws/hf
+            pathType: Prefix
+            backend:
+              service:
+                name: processorhf
+                port:
+                  number: 9080

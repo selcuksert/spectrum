@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.k8s.converted.yml --out ../../k8s
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mq
+  name: mq
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mq
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.k8s.converted.yml --out ../../k8s
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: mq
+    spec:
+      containers:
+      - env:
+        - name: TZ
+          value: Europe/Istanbul
+        image: rabbitmq:management
+        imagePullPolicy: Never
+        name: mq
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        resources: {}
+      restartPolicy: Always
+status: {}
