@@ -4,7 +4,7 @@ const Signal = require('../common/models/signal');
 const moment = require('moment-timezone');
 const bands = require('../common/models/bands');
 const config = require('../common/config');
-const {exchangeName, precision, samplesPerMhz, amplitude, retryInSecs} = require("../common/definitions");
+const {exchangeName, precision, amplitude, retryInSecs} = require("../common/definitions");
 
 const brokerUrl = `${config.broker.protocol}://${config.broker.host}:${config.broker.port}`;
 const sourceId = faker.datatype.uuid();
@@ -51,7 +51,7 @@ const start = () => {
     });
 }
 
-const generateRange = (min, max) => {
+const generateRange = (min, max, samplesPerMhz) => {
     let freqArr = [...new Array((max - min) * (samplesPerMhz))].map((_, idx) => min + idx * precision);
     let ampArr = [...new Array((max - min) * (samplesPerMhz))].map(() => faker.datatype.float({
         min: amplitude.min,
@@ -69,7 +69,10 @@ const generateRange = (min, max) => {
 }
 
 const generateSignal = (channel, band) => {
-    let range = generateRange(bands[`${band.toUpperCase()}`].min, bands[`${band.toUpperCase()}`].max, precision);
+    let min = bands[`${band.toUpperCase()}`].min;
+    let max = bands[`${band.toUpperCase()}`].max;
+    let samplesPerMhz = bands[`${band.toUpperCase()}`].samplesPerMhz;
+    let range = generateRange(min, max, samplesPerMhz);
     let freqArr = range.freqArr;
     let ampArr = range.ampArr;
 
@@ -79,7 +82,7 @@ const generateSignal = (channel, band) => {
 
     channel.publish(exchangeName, routingKey, Buffer.from(JSON.stringify(signal)));
 
-    setTimeout(() => generateSignal(channel, band), (1 / samplesPerMhz) * 1000);
+    setTimeout(() => generateSignal(channel, band), 1);
 }
 
 const registerQueue = (channel, excOk, bandName) => {
