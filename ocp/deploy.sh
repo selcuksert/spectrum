@@ -51,7 +51,6 @@ function generateApp() {
       --env='BROKER_PROTOCOL=amqp' \
       --env='TZ=Europe/Istanbul'
     oc patch "deployment/$app" -p '{"metadata":{"labels":{"app.kubernetes.io/part-of": "backend"}}}'
-    oc expose service $app
 }
 
 generateApp generator mf
@@ -68,3 +67,10 @@ oc new-app ui
 oc patch deployment ui -p '{"spec":{"template":{"spec":{"securityContext":{"runAsUser":0},"serviceAccountName":"runasroot"}}}}'
 oc expose service ui
 oc patch route/ui -p '{"spec":{"port":{"targetPort":8080}}}'
+
+oc expose service processormf
+oc expose service processorhf
+oc expose service processorvhf
+oc expose service processoruhf
+
+oc patch route/mq -p '{"spec":{"port":{"targetPort":15672}}}'
