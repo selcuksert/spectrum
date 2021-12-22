@@ -42,7 +42,14 @@ const startGraph = (band, range) => {
         ws.close();
     }
 
-    let wsUrl = `ws://app.poc.local/ws/${band}`;
+    let wsUrl = '';
+
+    if(window.location.hostname.indexOf('apps-crc') > 0) {
+        wsUrl=`ws://processor${band}-spectrum.apps-crc.testing`
+    }
+    else {
+        wsUrl = `ws://app.poc.local/ws/${band}`;
+    }
 
     ws = new WebSocket(wsUrl);
 

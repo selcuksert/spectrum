@@ -45,6 +45,7 @@ function generateApp() {
     oc new-app "$appName" \
       --labels="app=$app" \
       --name="$app" \
+      --env="WSS_PORT=8080" \
       --env="BAND=${band:u}" \
       --env='BROKER_HOST=mq' \
       --env='BROKER_PORT=5672' \
@@ -63,7 +64,7 @@ generateApp processor hf
 generateApp processor vhf
 generateApp processor uhf
 
-oc new-app ui
+oc new-app ui --env 'DEPLOYMENT_TYPE=OCP'
 oc patch deployment ui -p '{"spec":{"template":{"spec":{"securityContext":{"runAsUser":0},"serviceAccountName":"runasroot"}}}}'
 oc expose service ui
 oc patch route/ui -p '{"spec":{"port":{"targetPort":8080}}}'
@@ -73,4 +74,5 @@ oc expose service processorhf
 oc expose service processorvhf
 oc expose service processoruhf
 
+oc expose service mq
 oc patch route/mq -p '{"spec":{"port":{"targetPort":15672}}}'
