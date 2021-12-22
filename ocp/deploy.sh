@@ -66,5 +66,5 @@ generateApp processor uhf
 
 oc new-app ui
 oc patch deployment ui -p '{"spec":{"template":{"spec":{"securityContext":{"runAsUser":0},"serviceAccountName":"runasroot"}}}}'
-oc patch route/ui -p '{"spec":{"port":{"targetPort":8080}}}'
 oc expose service ui
+oc patch route/ui -p '{"spec":{"port":{"targetPort":8080}}}'
