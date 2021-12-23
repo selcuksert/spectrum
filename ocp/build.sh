@@ -1,4 +1,4 @@
-  #!/bin/zsh
+#!/bin/zsh
 
 scriptPath=${0:a:h}
 projectName="spectrum"
