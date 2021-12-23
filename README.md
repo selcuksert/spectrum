@@ -135,7 +135,7 @@ The project has deployment objects generated via [kompose](https://kompose.io/) 
 
 ## OpenShift (OCP)
 The project contains deployment utilities tested on CodeReady Containers (CRC) platform:
-* A [deploy script](./ocp/build.sh) to generate and push images via S2I and custom methods
+* A [build script](./ocp/build.sh) to generate and push images via S2I and custom methods
 * A [deploy script](./ocp/deploy.sh) that generates, updates and deploys app resources and apps.
 
 ![ocp](./docs/images/ocp.png)
