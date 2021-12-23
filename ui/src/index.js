@@ -99,6 +99,7 @@ const toggleGenerator = (band, status) => {
 
 (() => {
     clickHandler('mf', 0.3, 3);
+    toggleGenerator('mf', 'on');
 
     $('#mf').click(() => {
         clickHandler('mf', 0.3, 3);
