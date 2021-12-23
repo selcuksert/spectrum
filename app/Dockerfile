@@ -27,5 +27,7 @@ USER appuser
 WORKDIR $APP_HOME/$APP_NAME
 RUN yarn install
 
+EXPOSE $WEB_PORT
+
 ENTRYPOINT ["yarn"]
 CMD ["start"]

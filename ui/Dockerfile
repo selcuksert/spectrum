@@ -13,7 +13,8 @@ COPY index.html ./
 COPY favicon.ico ./
 COPY src/ ./src
 
-RUN yarn install && \
+RUN echo $DEPLOYMENT_TYPE && \
+    yarn install && \
     yarn build && \
     rm -rf ./node_modules
 

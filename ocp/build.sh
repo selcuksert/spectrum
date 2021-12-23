@@ -10,7 +10,7 @@ function buildImage() {
   buildName="$imageName-$imageTag"
 
   oc delete all -l "build=$buildName" &&
-    oc new-build --strategy docker --binary --name "$buildName" --to "$imageName:$imageTag" &&
+    oc new-build --strategy docker --binary --name "$buildName" --to "$imageName:$imageTag" --build-env DEPLOYMENT_TYPE=OCP
     oc start-build "$buildName" --from-dir "$buildPath" --follow --wait
 }
 
@@ -37,7 +37,7 @@ oc delete all -l "build=generator"
 cp -R "$scriptPath/../app/generator" "$scriptPath/build" && \
 cp -R "$scriptPath/../app/common" "$scriptPath/build/"
 sed -i '' 's/..\/common/.\/common/g' "$scriptPath/build/app.js"
-oc new-build nodejs --binary --name generator --to generator:latest
+oc new-build nodejs --binary --name generator --to generator:latest --build-env WEB_PORT=8080
 oc start-build generator --from-dir="$scriptPath/build" --wait
 rm -rf "$scriptPath/build"
 
@@ -46,6 +46,6 @@ oc delete all -l "build=processor"
 cp -R "$scriptPath/../app/processor" "$scriptPath/build" && \
 cp -R "$scriptPath/../app/common" "$scriptPath/build/"
 sed -i '' 's/..\/common/.\/common/g' "$scriptPath/build/app.js"
-oc new-build nodejs --binary --name processor --to processor:latest
+oc new-build nodejs --binary --name processor --to processor:latest --build-env WEB_PORT=8080
 oc start-build processor --from-dir="$scriptPath/build" --wait
 rm -rf "$scriptPath/build"

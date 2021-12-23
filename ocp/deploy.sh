@@ -37,21 +37,21 @@ done
 oc apply -f "${applyFileList:0:-1}"
 
 function generateApp() {
-    appName=$1
-    band=$2
-    app="$appName$band"
+  appName=$1
+  band=$2
+  app="$appName$band"
 
-    oc delete all -l "app=$app"
-    oc new-app "$appName" \
-      --labels="app=$app" \
-      --name="$app" \
-      --env="WSS_PORT=8080" \
-      --env="BAND=${band:u}" \
-      --env='BROKER_HOST=mq' \
-      --env='BROKER_PORT=5672' \
-      --env='BROKER_PROTOCOL=amqp' \
-      --env='TZ=Europe/Istanbul'
-    oc patch "deployment/$app" -p '{"metadata":{"labels":{"app.kubernetes.io/part-of": "backend"}}}'
+  oc delete all -l "app=$app"
+  oc new-app "$appName" \
+    --labels="app=$app" \
+    --name="$app" \
+    --env="WSS_PORT=8080" \
+    --env="BAND=${band:u}" \
+    --env='BROKER_HOST=mq' \
+    --env='BROKER_PORT=5672' \
+    --env='BROKER_PROTOCOL=amqp' \
+    --env='TZ=Europe/Istanbul'
+  oc patch "deployment/$app" -p '{"metadata":{"labels":{"app.kubernetes.io/part-of":'\""$appName"\"'}}}'
 }
 
 generateApp generator mf
@@ -64,7 +64,7 @@ generateApp processor hf
 generateApp processor vhf
 generateApp processor uhf
 
-oc new-app ui --env 'DEPLOYMENT_TYPE=OCP'
+oc new-app ui
 oc patch deployment ui -p '{"spec":{"template":{"spec":{"securityContext":{"runAsUser":0},"serviceAccountName":"runasroot"}}}}'
 oc expose service ui
 oc patch route/ui -p '{"spec":{"port":{"targetPort":8080}}}'
@@ -73,6 +73,11 @@ oc expose service processormf
 oc expose service processorhf
 oc expose service processorvhf
 oc expose service processoruhf
+
+oc expose service generatormf
+oc expose service generatorhf
+oc expose service generatorvhf
+oc expose service generatoruhf
 
 oc expose service mq
 oc patch route/mq -p '{"spec":{"port":{"targetPort":15672}}}'

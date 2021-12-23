@@ -5,9 +5,32 @@ const moment = require('moment-timezone');
 const bands = require('../common/models/bands');
 const config = require('../common/config');
 const {exchangeName, precision, amplitude, retryInSecs} = require("../common/definitions");
+const express = require('express');
+const cors = require('cors');
+const app = express();
 
 const brokerUrl = `${config.broker.protocol}://${config.broker.host}:${config.broker.port}`;
 const sourceId = faker.datatype.uuid();
+
+let active = true;
+
+app.use(cors({
+    origin: '*'
+}));
+
+app.listen(config.webPort, () => {
+    console.log(`Example app listening at ${config.webPort}`)
+});
+
+app.get('/on', (_, res) => {
+    active = true;
+    res.send('Generator enabled.');
+});
+
+app.get('/off', (_, res) => {
+    active = false;
+    res.send('Generator disabled.')
+});
 
 const start = () => {
     let band = process.env.BAND || undefined;
@@ -80,7 +103,9 @@ const generateSignal = (channel, band) => {
     let generatedAt = moment().valueOf();
     let signal = new Signal(sourceId, freqArr, ampArr, generatedAt, band);
 
-    channel.publish(exchangeName, routingKey, Buffer.from(JSON.stringify(signal)));
+    if (active) {
+        channel.publish(exchangeName, routingKey, Buffer.from(JSON.stringify(signal)));
+    }
 
     setTimeout(() => generateSignal(channel, band), 1);
 }

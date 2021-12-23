@@ -1,6 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const {ProvidePlugin} = require('webpack');
+const {ProvidePlugin, EnvironmentPlugin} = require('webpack');
 
 module.exports = {
     mode: 'development',
@@ -11,9 +11,9 @@ module.exports = {
             template: 'index.html',
             favicon: './favicon.ico'
         }),
-        new ProvidePlugin({
-            $: 'jquery'
-        })
+        new EnvironmentPlugin(
+            ['DEPLOYMENT_TYPE']
+        )
     ],
     output: {
         filename: 'main.js',

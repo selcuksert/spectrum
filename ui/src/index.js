@@ -1,5 +1,6 @@
 const Plotly = require('plotly.js-dist');
 require('bootstrap/dist/css/bootstrap.min.css');
+const $ = require('jquery');
 
 let ws = undefined;
 
@@ -37,20 +38,7 @@ const plotOnUpdate = (event, range) => {
     Plotly.newPlot(`graph`, graphData, layout);
 }
 
-const startGraph = (band, range) => {
-    if(ws) {
-        ws.close();
-    }
-
-    let wsUrl = '';
-
-    if(window.location.hostname.indexOf('apps-crc') > 0) {
-        wsUrl=`ws://processor${band}-spectrum.apps-crc.testing`
-    }
-    else {
-        wsUrl = `ws://app.poc.local/ws/${band}`;
-    }
-
+const connect = (wsUrl, range) => {
     ws = new WebSocket(wsUrl);
 
     ws.onopen = (e) => {
@@ -61,9 +49,26 @@ const startGraph = (band, range) => {
         plotOnUpdate(event, range);
     }
 
-    ws.onclose = (e) => {
-        console.log('WebSocket closed', e.currentTarget.url);
+    ws.onerror = function (err) {
+        console.error('Socket encountered error: ', err.message, 'Closing socket');
+        ws.close();
+    };
+}
+
+const startGraph = (band, range) => {
+    if (ws) {
+        ws.close();
     }
+
+    let wsUrl = '';
+
+    if ('OCP' === process.env.DEPLOYMENT_TYPE) {
+        wsUrl = `ws://processor${band}-spectrum.apps-crc.testing`
+    } else {
+        wsUrl = `ws://app.poc.local/ws/${band}`;
+    }
+
+    connect(wsUrl, range);
 }
 
 const toggleActive = (band) => {
@@ -79,6 +84,17 @@ const toggleActive = (band) => {
 const clickHandler = (band, min, max) => {
     toggleActive(band);
     startGraph(band, {min: min, max: max});
+}
+
+const toggleGenerator = (band, status) => {
+    let url = '';
+    if ('OCP' === process.env.DEPLOYMENT_TYPE) {
+        url = `//generator${band}-spectrum.apps-crc.testing`;
+    } else {
+        url = `//app.poc.local/api/${band}`;
+    }
+
+    $.get(`${url}/${status}`, (resp) => console.log(resp));
 }
 
 (() => {
@@ -100,10 +116,20 @@ const clickHandler = (band, min, max) => {
         clickHandler('uhf', 300, 3000);
     });
 
-    $('#stop').click(() => {
-        toggleActive('stop');
-        if(ws) {
-            ws.close();
+    $('#onOffSwitch').change((e) => {
+        let on = e.target.checked;
+
+        if (on) {
+            toggleGenerator('mf', 'on');
+            toggleGenerator('hf', 'on');
+            toggleGenerator('vhf', 'on');
+            toggleGenerator('uhf', 'on');
+        } else {
+            toggleGenerator('mf', 'off');
+            toggleGenerator('hf', 'off');
+            toggleGenerator('vhf', 'off');
+            toggleGenerator('uhf', 'off');
         }
     });
+
 })();
